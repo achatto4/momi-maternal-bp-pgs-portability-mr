@@ -1,0 +1,176 @@
+# ============================================================
+# BP -> PTB MR / PRS pipeline configuration (EXAMPLE)
+# Copy to config/config.yaml and edit for your environment.
+# config/config.yaml itself is git-ignored-safe to keep, but the
+# example is the version-controlled template.
+# ============================================================
+
+project:
+  name: "MOMI_BP_PTB_MR"
+  genome_build: "GRCh38"          # data delivery is GRCh38; matching is positional
+
+# ---- Compute environment (JHPCE) ----
+# Parameterized so the pipeline is portable off-cluster too.
+compute:
+  module_load_cmd: "module load"  # set "" if not using Lmod
+  plink1_module: "plink/1.90b"    # used for clumping / LD-prune
+  plink2_module: "plink/2.00a4.6" # used for conversion, QC, GWAS, scoring
+  plink1_bin: "plink"             # binary name once module is loaded
+  plink2_bin: "plink2"
+  r_module: "R"
+  bcftools_module: "bcftools"     # for VCF inspection if needed
+  threads: 8
+  mem_gb: 64
+
+# ---- Input data ----
+paths:
+  # Root of the new genotype delivery (5 cohorts x 2 platforms)
+  newdata_root: "/dcs10/chatterj/data/achattop/MOMI/Genomics/newdata_Jiong"
+  # Epidemiology / phenotype file (long format, tab-delimited)
+  epi_pheno: "/dcs04/nilanjan/data/Anagh/MOMI/Epi Data/MOMI_Selected_Variables_All_Sites.txt"
+  # External BP GWAS (exposure) - GWAS Catalog harmonized, GRCh38
+  ext_gwas_sbp: "/dcs04/nilanjan/data/Anagh/MOMI/sumstat/BP/mill_EUR/SBP/GCST90310294.h.tsv.gz"
+  ext_gwas_dbp: "/dcs04/nilanjan/data/Anagh/MOMI/sumstat/BP/mill_EUR/DBP/GCST90310295.h.tsv.gz"
+  # LD reference for clumping (per-chr plink2 pfiles). {chr} is substituted 1..22.
+  ld_ref_pfile: "/dcl01/arking/data/UK_Biobank/static/Genetic/GenotypingArray/Imputed/plink/chr{chr}"
+  # Working / output directory ON THE CLUSTER (large outputs land here; never in git)
+  work_dir: "/dcs10/chatterj/data/achattop/MOMI/Genomics/pipeline_out"
+
+# ---- Cohorts (the 5 new sites) ----
+# site_code matches the SS- prefix in VCF sample IDs (01..05).
+# ancestry drives PRS score selection.
+cohorts:
+  # epi_pid_prefix = Epi PARTICIPANT_ID prefix for this cohort, used to scope the
+  # ORIG_ID -> PARTICIPANT_ID join (avoids cross-cohort ORIG_ID collisions).
+  # CONFIRMED: AMANHIB. The others are best-guesses -> confirm against the Epi file
+  # before running each cohort (grep distinct PARTICIPANT_ID prefixes per site).
+  - id: "AMANHI-Bangladesh"
+    site_code: "01"
+    ancestry: "SAS"
+    epi_pid_prefix: "AMANHIB"      # CONFIRMED
+    platforms: ["gsa", "lpwgs"]
+  - id: "AMANHI-Pakistan"
+    site_code: "02"
+    ancestry: "SAS"
+    epi_pid_prefix: "AMANHIP"      # CONFIRMED
+    platforms: ["gsa", "lpwgs"]
+  - id: "AMANHI-Pemba"
+    site_code: "03"
+    ancestry: "AFR"
+    epi_pid_prefix: "AMANHIT"      # CONFIRMED (Pemba uses the AMANHI-Tanzania prefix)
+    platforms: ["gsa", "lpwgs"]
+  - id: "GAPPS-Bangladesh"
+    site_code: "04"
+    ancestry: "SAS"
+    epi_pid_prefix: "GAPPSB"       # CONFIRMED
+    platforms: ["gsa", "lpwgs"]
+  - id: "GAPPS-Zambia"
+    site_code: "05"
+    ancestry: "AFR"
+    epi_pid_prefix: "ZAPPS"        # CONFIRMED (Epi uses ZAPPS-, incl. ZAPPS-Z variant)
+    platforms: ["gsa", "lpwgs"]
+
+# ---- Platform file conventions (per cohort folder) ----  [CONFIRMED by inspection]
+platforms:
+  gsa:
+    vcf: "gsa_reimputed.vcf.gz"
+    idmap: "gsa_idmap.csv"
+    dosage_field: "HDS"           # GSA carries HDS (haploid dosage), no GT
+    quality: "info_r2"            # filter on INFO/R2
+    r2_min: 0.8                   # standard imputed-GWAS threshold (0.3 left ~6% missing after hardcall)
+  lpwgs:
+    vcf: "lpwgs_imputed.vcf.gz"
+    idmap: "lpwgs_idmap.csv"
+    dosage_field: "DS"            # lpWGS carries GT:DS:GP
+    quality: "filter_pass"        # FILTER==PASS (Gencove max(GP)>0.9); header's INFO/INFO
+                                  # score is declared but NOT populated, so unusable
+
+# ---- Sample / ID handling ----  [CONFIRMED by inspection]
+samples:
+  # idmap.csv columns: id,sid,sex,ORIG_ID,Subject_ID
+  idmap_id_col: 1                 # VCF sample name (GSA: 01-X..-M ; lpWGS: UUID)
+  idmap_sid_col: 2                # 'sid' encodes role in chars 3-4
+  idmap_sex_col: 3
+  idmap_orig_col: 4               # ORIG_ID -> joins to Epi ORIG_ID (BOTH platforms)
+  idmap_subject_col: 5
+  # Mother rule (uniform across platforms): sid chars [pos..pos+len-1] == mother_code
+  mother_code: "BE"               # BE=mother; CB/CL/SN=child (verified GSA -M == BE)
+  sid_code_pos: 3
+  sid_code_len: 2
+  # Canonical analysis ID = Epi PARTICIPANT_ID, reached via ORIG_ID join.
+  join_key: "ORIG_ID"
+  canonical_id: "PARTICIPANT_ID"
+
+# ---- Genotype QC thresholds ----
+qc:
+  imputation_info_min: 0.8        # GSA R2 / lpWGS INFO quality threshold (per-cohort)
+  maf_min: 0.01                   # applied at the POOLED merge, NOT per cohort
+                                  # (positions are shared across cohorts; "common" is ancestry-specific,
+                                  #  so per-cohort MAF + intersection collapses the set)
+  geno_max: 0.05                  # per-variant missingness
+  mind_max: 0.05                  # per-sample missingness
+  hwe_min_p: 1e-6
+  hard_call_threshold: 0.4999     # assign dosage to nearest hardcall (near-zero missing); 0.1 nulled ~5%
+  autosomes_only: true            # chr 1-22
+
+# ---- Phenotypes ----
+phenotypes:
+  traits: ["SBP", "DBP"]
+  outcome: "PTB_NEW"
+  bp_window: "latest"             # earliest | 5mo | 7mo | 8mo_and_later | latest
+  ptb_case_code: 2                # canonical: 2 = case, 1 = control
+  covariates: ["SITE_CODE", "PW_AGE", "PW_EDUCATION", "WEALTH_INDEX"]
+  missing_codes: ["-88", "-77", "-99", "NA", "na", ""]
+
+# ---- PCA ----
+pca:
+  n_pcs: 10
+  prune_window: 50
+  prune_step: 5
+  prune_r2: 0.2
+  use_pcs_in_gwas: true           # FIX vs old pipeline: PCs WILL be GWAS covariates
+  n_pcs_as_covar: 10
+
+# ---- MR ----
+mr:
+  p_threshold: 5e-8
+  p_threshold_relaxed: 5e-6       # fallback if no genome-wide-significant hits
+  clump_r2: 0.001
+  clump_kb: 10000
+  harmonise_action: 2
+  methods: ["mr_ivw", "mr_egger_regression", "mr_weighted_median", "mr_weighted_mode"]
+
+# ---- PRS (per-ancestry PGS manifest) ----
+# Generalizes the old 4 hardcoded PGS IDs. Add rows per trait x ancestry.
+# All assumed GRCh38-harmonized; set hm_columns accordingly.
+prs:
+  standardize_within_site: true
+  min_cases_per_site: 10
+  min_controls_per_site: 10
+  # All GRCh38-harmonized (hm_chr/hm_pos). EUR + SAS comparison on all 5 cohorts.
+  # AFR scores for Pemba/Zambia still to be sourced -> add rows here when available.
+  scores:
+    - trait: "SBP"
+      ancestry: "EUR"
+      pgs_id: "PGS004603"
+      file: "/dcs04/nilanjan/data/Anagh/MOMI/sumstat/BP/PRS_BP/SBP/PGS004603_hmPOS_GRCh38.txt.gz"
+      chr_col: "hm_chr"
+      pos_col: "hm_pos"
+    - trait: "DBP"
+      ancestry: "EUR"
+      pgs_id: "PGS004604"
+      file: "/dcs04/nilanjan/data/Anagh/MOMI/sumstat/BP/PRS_BP/DBP/PGS004604_hmPOS_GRCh38.txt.gz"
+      chr_col: "hm_chr"
+      pos_col: "hm_pos"
+    - trait: "SBP"
+      ancestry: "SAS"
+      pgs_id: "PGS004830"
+      file: "/dcs04/nilanjan/data/Anagh/MOMI/sumstat/BP/PRS_BP/SBP/PGS004830_hmPOS_GRCh38.txt.gz"  # download GRCh38
+      chr_col: "hm_chr"
+      pos_col: "hm_pos"
+    - trait: "DBP"
+      ancestry: "SAS"
+      pgs_id: "PGS004758"
+      file: "/dcs04/nilanjan/data/Anagh/MOMI/sumstat/BP/PRS_BP/DBP/PGS004758_hmPOS_GRCh38.txt.gz"
+      chr_col: "hm_chr"
+      pos_col: "hm_pos"

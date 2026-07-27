@@ -1,0 +1,13 @@
+id	n_snps_in_score	method	PMID	discovery_N	training_N	discovery_ancestry	publication	catalog_url	retrieved
+PGS004603	7356519	SBayesRC	38689001	1028980	NA	European 100% (BioVU, ICBP, MVP, UKB)	Keaton JM et al., Nat Genet, 2024	https://www.pgscatalog.org/score/PGS004603/	2026-07-18
+PGS004604	7356519	SBayesRC	38689001	1028980	NA	European 100% (BioVU, ICBP, MVP, UKB)	Keaton JM et al., Nat Genet, 2024	https://www.pgscatalog.org/score/PGS004604/	2026-07-18
+PGS004830	4805129	PRSmix	38508198	NA	28752	South Asian 100% (Genes & Health)	Truong B et al., Cell Genom, 2024	https://www.pgscatalog.org/score/PGS004830/	2026-07-18
+PGS004758	4139034	PRSmixPlus	38508198	NA	28743	South Asian 100% (Genes & Health)	Truong B et al., Cell Genom, 2024	https://www.pgscatalog.org/score/PGS004758/	2026-07-18
+PGS002376	920928	BOLT-LMM-BBJ	35393596	124000	NA	East Asian 100% (BioBank Japan)	Weissbrod O et al., Nat Genet, 2022	https://www.pgscatalog.org/score/PGS002376/	2026-07-18
+PGS002362	920925	BOLT-LMM-BBJ	35393596	124000	NA	East Asian 100% (BioBank Japan)	Weissbrod O et al., Nat Genet, 2022	https://www.pgscatalog.org/score/PGS002362/	2026-07-18
+PGS002238	1119444	PRS-CS	35522175	627529	341930	discovery EUR 58.3/EAS 21.8/AFR 15.1/HIS 3.6%; training European 100% (UKB)	Breeyear JH et al., Circ Genom Precis Med, 2022	https://www.pgscatalog.org/score/PGS002238/	2026-07-18
+PGS002239	1119054	PRS-CS	35522175	627547	341930	discovery EUR 58.3/EAS 21.8/AFR 15.1/HIS 3.6%; training European 100% (UKB)	Breeyear JH et al., Circ Genom Precis Med, 2022	https://www.pgscatalog.org/score/PGS002239/	2026-07-18
+PGS003968	1267240	PRSice-2 + LDpred2-auto + PRS-CSx (PRSsum)	37268629	1244244	NA	EUR 79/EAS 11/AFR 7.6/HIS 1.8%	Kurniansyah N et al., Nat Commun, 2023	https://www.pgscatalog.org/score/PGS003968/	2026-07-18
+PGS003964	1267600	PRSice-2 + LDpred2-auto + PRS-CSx (PRSsum)	37268629	1244262	NA	EUR 79/EAS 11/AFR 7.6/HIS 1.8%	Kurniansyah N et al., Nat Commun, 2023	https://www.pgscatalog.org/score/PGS003964/	2026-07-18
+PGS005008	1286612	LDpred	39323095	1210038	NA	multi-ancestry incl. EUR 50.3/EUR 35.7/AFR 9.8/HIS 4.1%	Gunn S et al., HGG Adv, 2024	https://www.pgscatalog.org/score/PGS005008/	2026-07-18
+PGS000027	2100302	LDpred	31002795	238944	119951	discovery EUR 99.1%; training European 100% (UKB phase 1)	Khera AV et al., Cell, 2019	https://www.pgscatalog.org/score/PGS000027/	2026-07-18

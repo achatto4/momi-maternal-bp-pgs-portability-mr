@@ -1,0 +1,31 @@
+# Defensive ignore rules for the PUBLIC repository.
+# Individual-level data and analysis outputs must never be committed here.
+
+# data & results
+results/
+data/
+*.rds
+*.bed
+*.bim
+*.fam
+*.pgen
+*.pvar
+*.psam
+*.bcf
+*.vcf
+*.vcf.gz
+*.sscore
+*.raw
+
+# large / rendered artifacts
+*.pdf
+*.docx
+*.pptx
+
+# OS / editor cruft
+.DS_Store
+*.Rproj
+.Rhistory
+.RData
+__pycache__/
+*.pyc
