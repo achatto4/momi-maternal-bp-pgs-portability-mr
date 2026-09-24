@@ -1,0 +1,15 @@
+row_no	section	characteristic	AMANHI-Sylhet, Bangladesh	AMANHI-Karachi, Pakistan	PreSSMat-Matlab, Bangladesh	AMANHI-Pemba, Tanzania	ZAPPS-Lusaka, Zambia
+1		PGS-portability sample, N	2,588	1,998	3,503	3,620	1,395
+2	Maternal characteristics	Maternal age, mean (SD), years	23.5 (4.4)	26.5 (5.2)	25.2 (5.9)	27.8 (6.3)	28.4 (5.7)
+3	Maternal characteristics	BMI, mean (SD), kg/m²	20.0 (3.0)	22.4 (4.8)	22.0 (3.6)	24.8 (5.3)	26.0 (5.3)
+4	Maternal characteristics	Gravidity, median (IQR)	2 (1–3)	3 (2–5)	2 (1–3)	4 (2–7)	3 (2–4)
+5	Antenatal blood pressure	Valid antenatal BP readings, median (IQR)	3 (2–3)	3 (2–3)	5 (4–5)	3 (3–3)	4 (4–5)
+6	Antenatal blood pressure	Gestational age at first valid BP, median (IQR), weeks	23.9 (22.6–25.4)	24.7 (24.3–25.3)	12.3 (11.6–13.7)	24.3 (23.9–25.1)	16.6 (13.7–19.1)
+7	Antenatal blood pressure	Mean antenatal SBP, mean (SD), mmHg	100.9 (8.7)	108.8 (9.4)	103.6 (8.5)	115.0 (9.4)	108.3 (9.1)
+8	Antenatal blood pressure	Mean antenatal DBP, mean (SD), mmHg	65.3 (6.8)	70.1 (7.0)	67.0 (6.4)	72.0 (6.1)	69.6 (6.9)
+9	Pregnancy outcomes	Preterm birth, n/N (%)	307/2,474 (12.4)	282/1,920 (14.7)	359/3,447 (10.4)	158/3,408 (4.6)	106/1,364 (7.8)
+10	Pregnancy outcomes	Birth weight, mean (SD), g	2,711.5 (464.9)	2,788.0 (437.2)	2,832.9 (447.5)	3,297.8 (494.1)	3,035.1 (496.7)
+11	Pregnancy outcomes	Low birth weight, n/N (%)	631/2,123 (29.7)	376/1,677 (22.4)	476/2,555 (18.6)	148/3,269 (4.5)	136/1,357 (10.0)
+12	Pregnancy outcomes	Small for gestational age, n/N (%)	935/2,121 (44.1)	572/1,677 (34.1)	843/2,555 (33.0)	329/3,231 (10.2)	241/1,354 (17.8)
+13	Pregnancy outcomes	Stillbirth, n/N (%)	109/2,585 (4.2)	68/1,988 (3.4)	54/3,501 (1.5)	89/3,601 (2.5)	29/1,393 (2.1)
+14	Pregnancy outcomes	Preeclampsia, n/N (%)	6/2,585 (0.2)	31/1,988 (1.6)	35/3,501 (1.0)	101/3,601 (2.8)	36/1,393 (2.6)

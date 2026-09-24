@@ -1,0 +1,41 @@
+Blood pressure	Outcome	Cohort	Ancestry group	Polygenic score	N	Events	First-stage beta	First-stage SE	First-stage F	MR estimate (95% CI)	P value
+Systolic	Preterm birth	AMANHI-Sylhet	South Asian	PGS004830	2,474	307	1.51	0.169	79.4	0.65 (0.28 to 1.53)	0.329
+Systolic	Preterm birth	AMANHI-Karachi	South Asian	PGS004830	1,920	282	1.92	0.208	85.1	0.51 (0.25 to 1.05)	0.066
+Systolic	Preterm birth	PreSSMat-Matlab	South Asian	PGS004830	3,446	359	2.17	0.141	237.1	1.88 (1.12 to 3.16)	0.018
+Systolic	Preterm birth	AMANHI-Pemba	African	PGS004603	3,408	158	1.20	0.159	56.8	2.43 (0.56 to 10.47)	0.234
+Systolic	Preterm birth	ZAPPS-Lusaka	African	PGS004603	1,349	105	1.13	0.243	21.5	2.35 (0.38 to 14.48)	0.358
+Systolic	Low birth weight	AMANHI-Sylhet	South Asian	PGS004830	2,123	631	1.55	0.181	73.4	0.77 (0.42 to 1.43)	0.405
+Systolic	Low birth weight	AMANHI-Karachi	South Asian	PGS004830	1,677	376	1.95	0.220	78.6	0.98 (0.53 to 1.82)	0.942
+Systolic	Low birth weight	PreSSMat-Matlab	South Asian	PGS004830	2,555	476	2.14	0.160	178.7	1.42 (0.89 to 2.29)	0.144
+Systolic	Low birth weight	AMANHI-Pemba	African	PGS004603	3,269	148	1.21	0.162	55.7	2.77 (0.66 to 11.58)	0.162
+Systolic	Low birth weight	ZAPPS-Lusaka	African	PGS004603	1,342	135	1.12	0.244	21.2	1.02 (0.21 to 5.02)	0.980
+Systolic	Small for gestational age	AMANHI-Sylhet	South Asian	PGS004830	2,121	935	1.55	0.181	72.8	0.84 (0.48 to 1.48)	0.551
+Systolic	Small for gestational age	AMANHI-Karachi	South Asian	PGS004830	1,677	572	1.95	0.220	78.6	0.74 (0.43 to 1.27)	0.276
+Systolic	Small for gestational age	PreSSMat-Matlab	South Asian	PGS004830	2,555	843	2.14	0.160	178.7	1.22 (0.83 to 1.80)	0.314
+Systolic	Small for gestational age	AMANHI-Pemba	African	PGS004603	3,231	329	1.20	0.163	53.9	0.82 (0.31 to 2.20)	0.699
+Systolic	Small for gestational age	ZAPPS-Lusaka	African	PGS004603	1,339	240	1.12	0.244	21.1	0.53 (0.15 to 1.91)	0.330
+Systolic	Birth weight	AMANHI-Sylhet	South Asian	PGS004830	2,123	—	1.55	0.181	73.4	39 (−89 to 166)	0.550
+Systolic	Birth weight	AMANHI-Karachi	South Asian	PGS004830	1,677	—	1.95	0.220	78.6	24 (−86 to 133)	0.674
+Systolic	Birth weight	PreSSMat-Matlab	South Asian	PGS004830	2,555	—	2.14	0.160	178.7	−81 (−163 to 0)	0.050
+Systolic	Birth weight	AMANHI-Pemba	African	PGS004603	3,269	—	1.21	0.162	55.7	−111 (−255 to 33)	0.132
+Systolic	Birth weight	ZAPPS-Lusaka	African	PGS004603	1,342	—	1.12	0.244	21.2	101 (−141 to 342)	0.414
+Diastolic	Preterm birth	AMANHI-Sylhet	South Asian	PGS004758	2,474	307	1.09	0.133	66.7	0.83 (0.26 to 2.71)	0.763
+Diastolic	Preterm birth	AMANHI-Karachi	South Asian	PGS004758	1,920	282	1.41	0.157	80.7	0.39 (0.15 to 1.06)	0.064
+Diastolic	Preterm birth	PreSSMat-Matlab	South Asian	PGS004758	3,446	359	1.49	0.104	206.0	2.07 (0.97 to 4.40)	0.060
+Diastolic	Preterm birth	AMANHI-Pemba	African	PGS004604	3,408	158	0.56	0.103	29.8	5.58 (0.24 to 127.59)	0.282
+Diastolic	Preterm birth	ZAPPS-Lusaka	African	PGS004604	1,349	105	1.09	0.183	35.3	1.00 (0.16 to 6.34)	0.996
+Diastolic	Low birth weight	AMANHI-Sylhet	South Asian	PGS004758	2,123	631	1.15	0.144	64.4	0.94 (0.41 to 2.14)	0.879
+Diastolic	Low birth weight	AMANHI-Karachi	South Asian	PGS004758	1,677	376	1.49	0.167	79.2	1.05 (0.46 to 2.39)	0.900
+Diastolic	Low birth weight	PreSSMat-Matlab	South Asian	PGS004758	2,555	476	1.49	0.118	160.6	1.27 (0.64 to 2.52)	0.493
+Diastolic	Low birth weight	AMANHI-Pemba	African	PGS004604	3,269	148	0.56	0.105	28.0	19.52 (0.79 to 482.88)	0.069
+Diastolic	Low birth weight	ZAPPS-Lusaka	African	PGS004604	1,342	135	1.09	0.184	34.9	1.46 (0.28 to 7.62)	0.655
+Diastolic	Small for gestational age	AMANHI-Sylhet	South Asian	PGS004758	2,121	935	1.17	0.144	65.6	1.09 (0.51 to 2.30)	0.826
+Diastolic	Small for gestational age	AMANHI-Karachi	South Asian	PGS004758	1,677	572	1.49	0.167	79.2	0.73 (0.36 to 1.50)	0.395
+Diastolic	Small for gestational age	PreSSMat-Matlab	South Asian	PGS004758	2,555	843	1.49	0.118	160.6	1.31 (0.75 to 2.31)	0.348
+Diastolic	Small for gestational age	AMANHI-Pemba	African	PGS004604	3,231	329	0.54	0.106	26.4	0.80 (0.09 to 6.78)	0.837
+Diastolic	Small for gestational age	ZAPPS-Lusaka	African	PGS004604	1,339	240	1.09	0.183	35.3	0.73 (0.20 to 2.67)	0.640
+Diastolic	Birth weight	AMANHI-Sylhet	South Asian	PGS004758	2,123	—	1.15	0.144	64.4	8 (−163 to 179)	0.927
+Diastolic	Birth weight	AMANHI-Karachi	South Asian	PGS004758	1,677	—	1.49	0.167	79.2	11 (−133 to 156)	0.877
+Diastolic	Birth weight	PreSSMat-Matlab	South Asian	PGS004758	2,555	—	1.49	0.118	160.6	−115 (−233 to 3)	0.056
+Diastolic	Birth weight	AMANHI-Pemba	African	PGS004604	3,269	—	0.56	0.105	28.0	−458 (−805 to −110)	0.010
+Diastolic	Birth weight	ZAPPS-Lusaka	African	PGS004604	1,342	—	1.09	0.184	34.9	192 (−62 to 446)	0.138
