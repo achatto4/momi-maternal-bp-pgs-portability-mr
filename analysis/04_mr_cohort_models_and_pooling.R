@@ -14,8 +14,8 @@
 ##                the corresponding mean antenatal pressure, the outcome and its
 ##                denominator condition, maternal age, genotyping technology and
 ##                principal components 1-5. Both stages are fitted in exactly those women.
-##   Covariates   maternal age, genotyping technology, principal components 1-5, and
-##                nothing else.
+##   Covariates   maternal age, genotyping technology, the within-cohort joint-platform
+##                principal components 1-5, and nothing else.
 ##   First stage  blood pressure on the score and the covariates, by ordinary least
 ##                squares, re-estimated in every outcome-specific sample.
 ##   Reduced form logistic regression for the binary outcomes and ordinary least squares
@@ -24,12 +24,15 @@
 ##                penalised estimator is substituted.
 ##   Estimate     the Wald ratio of the reduced-form to the first-stage coefficient, with
 ##                a delta-method standard error, scaled to a 10 mmHg difference.
-##   Pooling      random-effects meta-analysis by restricted maximum likelihood with a z
-##                test, using the same model for every pooled estimate: the South Asian
-##                cohorts, the African cohorts, and all five together. Binary outcomes are
-##                pooled on the log-odds scale and exponentiated afterwards; birth weight
-##                is pooled in grams. The subgroup estimates are descriptive: no
-##                meta-regression and no formal ancestry-interaction test is fitted.
+##   Pooling      inverse-variance fixed-effect meta-analysis with a z test, treating the
+##                cohort estimates as estimates of a common effect, using the same model for
+##                every pooled estimate: the South Asian cohorts, the African cohorts, and all
+##                five together. Between-cohort heterogeneity is summarised by Cochran's Q
+##                test and I-squared, max(0, (Q - df) / Q), from the same cohort estimates.
+##                Binary outcomes are pooled on the log-odds scale and exponentiated
+##                afterwards; birth weight is pooled in grams. The subgroup estimates are
+##                descriptive: no meta-regression and no formal ancestry-interaction test
+##                is fitted.
 ## -------------------------------------------------------------------------------
 if (!exists("MOMI_ROOT")) MOMI_ROOT <- getwd()
 if (!exists("config")) source(file.path(MOMI_ROOT,
@@ -303,11 +306,11 @@ POOL <- rbindlist(lapply(seq_len(nrow(ANALYSES)), function(i){
     if(nrow(D) != length(GROUPS[[g]]))
       stop("group ", g, " for ", tr, " -> ", oc, " has ", nrow(D), " cohorts, expected ", length(GROUPS[[g]]))
 
-    m <- rma(yi = D$yi, sei = D$sei, method = "REML", test = "z")
+    m <- rma(yi = D$yi, sei = D$sei, method = "FE", test = "z")
     data.table(
       bp_trait = tr, outcome = oc, outcome_label = OUTLAB[[oc]],
       outcome_type = if(bin) "binary" else "continuous", analysis_scale = SCALE[[oc]],
-      population_group = g, model = "random effects (REML), z test",
+      population_group = g, model = "fixed effect (inverse variance), z test",
       k_cohorts = m$k, N_total = sum(D$N),
       events_total = if(bin) sum(as.numeric(D$n_events)) else NA_real_,
       pooled_estimate = as.numeric(m$beta), pooled_se = m$se, ci_lo = m$ci.lb, ci_hi = m$ci.ub,
@@ -315,7 +318,7 @@ POOL <- rbindlist(lapply(seq_len(nrow(ANALYSES)), function(i){
       or_lo95 = if(bin) exp(m$ci.lb) else NA_real_, or_hi95 = if(bin) exp(m$ci.ub) else NA_real_,
       grams_per_10mmHg = if(bin) NA_real_ else as.numeric(m$beta),
       grams_lo95 = if(bin) NA_real_ else m$ci.lb, grams_hi95 = if(bin) NA_real_ else m$ci.ub,
-      z = m$zval, p = m$pval, tau2 = m$tau2, I2 = m$I2, H2 = m$H2,
+      z = m$zval, p = m$pval, I2 = m$I2,
       Q = m$QE, Q_df = m$k - 1L, Q_p = m$QEp,
       cohorts = paste(D$cohort_display, collapse = "; "))
   }))

@@ -1,7 +1,8 @@
 component	version	role	environment
-R	R version 4.3.1 Patched (2023-07-19 r84711)	cohort construction, phenotypes, genetic covariates and scores, polygenic-score portability, cohort Mendelian randomization, exposure sensitivity	secure computing environment holding the individual-level data
+R	R version 4.3.1 Patched (2023-07-19 r84711)	cohort construction, phenotypes, genetic covariates and scores, the joint-platform principal components, polygenic-score portability, cohort Mendelian randomization, exposure sensitivity	secure computing environment holding the individual-level data
 data.table	1.17.6	data handling throughout the steps above	secure computing environment holding the individual-level data
 splines	distributed with R (base package, no separate version)	natural cubic spline of gestational age, ns(GA_days, 3), for the gestational-age-standardized exposure definitions	secure computing environment holding the individual-level data
-PLINK	v2.00a4.6LM 64-bit Intel (29 Aug 2023)	polygenic scoring from the harmonized scoring files, and the principal-component projection	secure computing environment holding the individual-level data
+PLINK	v2.00a4.6LM 64-bit Intel (29 Aug 2023)	polygenic scoring from the harmonized scoring files; variant quality control, LD pruning and genotype export for the principal-component analysis	secure computing environment holding the individual-level data
+bcftools	1.18	reading the re-imputed array VCF for the array dosages	secure computing environment holding the individual-level data
 R	R version 4.3.3 (2024-02-29)	pooling of the cohort estimates and the display scripts	analysis environment holding the aggregate results only
-metafor	4.4.0	random-effects meta-analysis, rma(yi, sei, method = "REML", test = "z")	analysis environment holding the aggregate results only
+metafor	4.4.0	inverse-variance fixed-effect meta-analysis, rma(yi, sei, method = "FE", test = "z")	analysis environment holding the aggregate results only

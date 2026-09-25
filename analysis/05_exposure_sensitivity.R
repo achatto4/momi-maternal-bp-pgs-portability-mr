@@ -29,7 +29,7 @@
 ## script stops if either fails. Everything else is held at the specification of 04: the
 ## same outcomes and denominators, the same covariates, the same single prespecified
 ## two-cell technology recoding, the same Wald ratio with its delta-method standard error,
-## the same 10 mmHg scaling, and the same random-effects pooling. For every definition and
+## the same 10 mmHg scaling, and the same fixed-effect pooling. For every definition and
 ## outcome the complete-case sample is rebuilt and both stages are re-estimated in it.
 ## -------------------------------------------------------------------------------
 if (!exists("MOMI_ROOT")) MOMI_ROOT <- getwd()
@@ -357,7 +357,7 @@ RES <- rbindlist(RES); CNT <- rbindlist(CNT)
 W_full(RES, "exposure_four_definitions_cohort.tsv")
 W_full(CNT, "exposure_four_definitions_sample_counts.tsv")
 
-## Pooling, the same random-effects model as in 04.
+## Pooling, the same fixed-effect model as in 04.
 
 if(POOL && requireNamespace("metafor", quietly=TRUE)){
   suppressMessages(library(metafor))
@@ -377,7 +377,7 @@ if(POOL && requireNamespace("metafor", quietly=TRUE)){
                           z=NA_real_, p=NA_real_, tau2=NA_real_, I2=NA_real_, Q=NA_real_,
                           Q_df=NA_integer_, Q_p=NA_real_,
                           status=sprintf("not pooled: only %d estimable cohort(s)", nrow(D))))
-      m <- rma(yi=D$wald_estimate_per_10mmHg, sei=D$wald_se_per_10mmHg, method="REML", test="z")
+      m <- rma(yi=D$wald_estimate_per_10mmHg, sei=D$wald_se_per_10mmHg, method="FE", test="z")
       data.table(exposure_definition=dfn, bp_trait=tr, outcome=oc,
                  outcome_type=if(bin) "binary" else "continuous",
                  k_cohorts=m$k, N_total=sum(D$N),

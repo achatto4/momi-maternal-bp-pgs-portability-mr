@@ -1,0 +1,6 @@
+cohort	women	reference_women	variants_in_pca	encoding	max_share_of_pc1_5_variance_explained_by_record_platform
+AMANHI-Bangladesh	2588	2451	88959	dosage	0.000915226059684275
+AMANHI-Pakistan	1998	1867	96533	dosage	0.000186478887328912
+GAPPS-Bangladesh	3503	3398	89515	dosage	0.000239369008633649
+AMANHI-Pemba	3620	3138	239745	dosage	0.00750360139036477
+GAPPS-Zambia	1395	1379	255214	dosage	0.00143499927034761

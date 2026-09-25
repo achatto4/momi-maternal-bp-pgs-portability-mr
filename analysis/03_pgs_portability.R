@@ -4,15 +4,16 @@
 ## How well published blood-pressure polygenic scores transfer to these cohorts.
 ##
 ## For each cohort, trait and score, two nested linear models are fitted in the cleaned
-## sample -- blood pressure on the standardised score and maternal age, against blood
-## pressure on maternal age alone -- and the incremental R-squared, the coefficient in
+## sample: blood pressure on maternal age, genotyping technology and the first five
+## within-cohort joint-platform principal components (the base model), and the same model
+## with the standardised score added. The incremental R-squared, the coefficient in
 ## millimetres of mercury per standard deviation of the score, its standard error and
-## t-based 95% confidence interval, the F statistic and the p value are reported. The
-## primary panel of five score families is fitted on the women who have all five scores
-## of that trait, so the families are compared in the same women; score-specific sample
-## sizes are reported alongside. Confidence intervals for the incremental R-squared come
-## from mother-level bootstrap resampling within cohort, with one index matrix per cohort
-## and trait shared by all five families of the primary panel.
+## t-based 95% confidence interval, the F statistic and the p value are reported. The four
+## paired score families are fitted on the women who have all four scores of that trait,
+## so the families are compared in the same women; score-specific sample sizes are
+## reported alongside. Confidence intervals for the incremental R-squared come from
+## mother-level bootstrap resampling within cohort, with one index matrix per cohort and
+## trait shared by the four families. The base-model R-squared is written as a diagnostic.
 ##
 ## A separate diagnostic compares the two genotyping platforms for the women who carry
 ## both, per cohort and score. It has no effect on the models above.
@@ -22,17 +23,17 @@ if (!exists("config")) source(file.path(MOMI_ROOT,
   if (file.exists(file.path(MOMI_ROOT, "config.R"))) "config.R" else "config.example.R"))
 source(file.path(MOMI_ROOT, "analysis", "00_functions.R"))
 
-t0    <- Sys.time()
-B     <- config$bootstrap_replicates
-SEED0 <- config$bootstrap_seed
+t0     <- Sys.time()
+B      <- config$bootstrap_replicates
+SEED0  <- config$bootstrap_seed
+COVSET <- "age+technology+pc1-5"
 
 SITE    <- c("1"="GAPPS-Zambia","2"="GAPPS-Bangladesh","3"="AMANHI-Pakistan",
              "4"="AMANHI-Bangladesh","5"="AMANHI-Pemba","6"="THSTI-India")
 GENO_PROBE <- "PGS004603"
-FAM     <- data.table(family=c("European","South Asian","East Asian","Diverse ancestry","MVP"),
-                      SBP=c("PGS004603","PGS004830","PGS002376","PGS003968","PGS002238"),
-                      DBP=c("PGS004604","PGS004758","PGS002362","PGS003964","PGS002239"))
-SUPP    <- "PGS005008"
+FAM     <- data.table(family=c("European","South Asian","East Asian","Diverse ancestry"),
+                      SBP=c("PGS004603","PGS004830","PGS002376","PGS003968"),
+                      DBP=c("PGS004604","PGS004758","PGS002362","PGS003964"))
 BPCOL   <- c(SBP="S_mean", DBP="D_mean")
 
 EPI_COLS <- c("SITE_CODE","PARTICIPANT_ID","PREGNANCY_ID","SBP","DBP","GA_HDLK_NEW","VISITDT","PW_AGE",
@@ -84,7 +85,8 @@ cov[, twin := as.integer(!is.na(TWIN) & TWIN != 1)]
 ALLW <- Reduce(function(a, b) merge(a, b, by="IID", all.x=TRUE), list(cov, Sd, Dd))
 ALLW[, hasBP := is.finite(S_mean) | is.finite(D_mean)]
 
-## Genotype availability and the merged scores.
+## Genotype availability, the covariates (genotyping technology and principal components
+## 1-5) and the merged scores.
 
 DROP <- if(!is.null(DROPF) && file.exists(DROPF)) fread(DROPF, colClasses="character") else
         data.table(ID=character(0), platform=character(0))
@@ -102,6 +104,16 @@ ELIG_N <- nrow(AN)
 KEEP <- if(!is.null(KEEPF) && file.exists(KEEPF)) as.character(fread(KEEPF, header=FALSE, colClasses="character")[[1]]) else character(0)
 if(length(KEEP)) AN <- AN[IID %chin% KEEP]
 CLEAN_N <- nrow(AN)
+
+if(COVSET != "age"){
+  TECH <- eligible_sample(EPI, SSC)$ALLW[, .(IID, technology)]
+  PL <- if(grepl("\\.rds$", PCSF, ignore.case=TRUE)) as.data.table(readRDS(PCSF)) else fread(PCSF, colClasses=list(character="IID"))
+  PL[, IID := as.character(IID)]
+  if(length(setdiff(PCS5, names(PL)))) stop("PC table lacks: ", paste(setdiff(PCS5, names(PL)), collapse=", "))
+  if(anyDuplicated(PL$IID)) stop("duplicate identifiers in the PC table")
+  COVT <- merge(TECH, PL[, c("IID", PCS5), with=FALSE], by="IID")
+  COV_MISSING <- AN[!(IID %chin% COVT[!is.na(technology) & technology != "none" & stats::complete.cases(COVT[, PCS5, with=FALSE]), IID]), .N]
+} else { COVT <- NULL; COV_MISSING <- 0L }
 getz <- function(pid, coh){
   L <- lapply(PLATS, function(p){ f <- file.path(SSC, sprintf("%s__%s__%s.sscore", pid, coh, p))
     if(!file.exists(f)) return(NULL); s <- rd_sscore(f, p)
@@ -110,7 +122,7 @@ getz <- function(pid, coh){
   X <- rbindlist(L)[is.finite(z)]
   X[, .(z=mean(z), n_plat=.N), by=IID][, z := zin(z)][]
 }
-SCORES <- c(FAM$SBP, FAM$DBP, SUPP)
+SCORES <- c(FAM$SBP, FAM$DBP)
 ZL <- list(); ZQC <- list()
 for(coh in COH5) for(sid in SCORES){
   z <- getz(sid, coh); if(is.null(z)) stop("no .sscore files for ", sid, " / ", coh)
@@ -125,19 +137,30 @@ W_(ZQC, "pgs_portability_score_qc.tsv")
 
 ## The models and the bootstrap.
 
-transfer <- function(z, y, age){
-  m <- lm(y ~ z + age); m0 <- lm(y ~ age); sm <- summary(m)
+covmat <- function(D){
+  C <- cbind(age=D$AGE)
+  if(COVSET != "age"){
+    lv <- intersect(c("GSA only", "low-pass WGS only", "both"), unique(D$technology))
+    ref <- if("low-pass WGS only" %in% lv) "low-pass WGS only" else names(sort(table(D$technology), decreasing=TRUE))[1]
+    for(l in setdiff(lv, ref)) C <- cbind(C, as.numeric(D$technology == l))
+    colnames(C)[-1] <- if(ncol(C) > 1) paste0("tech_", make.names(setdiff(lv, ref))) else character(0)
+    C <- cbind(C, as.matrix(D[, PCS5, with=FALSE]))
+  }
+  C
+}
+transfer <- function(z, y, C){
+  m <- lm(y ~ z + C); m0 <- lm(y ~ C); sm <- summary(m)
   cc <- sm$coefficients; ci <- confint(m, "z", level=0.95)
   list(incR2=sm$r.squared - summary(m0)$r.squared, beta=cc["z", 1], se=cc["z", 2], beta_lo=ci[1], beta_hi=ci[2],
-       F=(cc["z", 1]/cc["z", 2])^2, p=cc["z", 4])
+       F=(cc["z", 1]/cc["z", 2])^2, p=cc["z", 4], r2_base=summary(m0)$r.squared, df_resid=m$df.residual)
 }
-inc_fast <- function(y, z, age){
-  f0 <- .lm.fit(cbind(1, age), y); f1 <- .lm.fit(cbind(1, z, age), y)
+inc_fast <- function(y, z, C){
+  f0 <- .lm.fit(cbind(1, C), y); f1 <- .lm.fit(cbind(1, z, C), y)
   tss <- sum((y - mean(y))^2)
-  if(f0$rank < 2 || f1$rank < 3 || !(tss > 0)) return(NA_real_)
+  if(f0$rank < 2 || f1$rank != f0$rank + 1L || !(tss > 0)) return(NA_real_)
   (sum(f0$residuals^2) - sum(f1$residuals^2)) / tss
 }
-boot_inc <- function(y, z, age, IDX) vapply(seq_len(ncol(IDX)), function(b){ i <- IDX[, b]; inc_fast(y[i], z[i], age[i]) }, numeric(1))
+boot_inc <- function(y, z, C, IDX) vapply(seq_len(ncol(IDX)), function(b){ i <- IDX[, b]; inc_fast(y[i], z[i], C[i, , drop=FALSE]) }, numeric(1))
 make_idx <- function(n, seed){ set.seed(seed); matrix(sample.int(n, n * B, replace=TRUE), nrow=n) }
 summ <- function(bt) list(boot_B=B, boot_n_success=sum(is.finite(bt)),
                           boot_lo=unname(quantile(bt, 0.025, na.rm=TRUE, type=7)), boot_hi=unname(quantile(bt, 0.975, na.rm=TRUE, type=7)),
@@ -146,11 +169,13 @@ summ <- function(bt) list(boot_B=B, boot_n_success=sum(is.finite(bt)),
 RES <- list(); BOOT <- list(); SAMP <- list()
 for(ic in seq_along(COH5)) for(it in 1:2){
   coh <- COH5[ic]; tr <- c("SBP","DBP")[it]; seed <- SEED0 + 10L*ic + it
-  sids <- FAM[[tr]]; allsids <- if(tr == "SBP") c(sids, SUPP) else sids
+  sids <- FAM[[tr]]; allsids <- sids
   D <- AN[cohort == coh, .(IID, AGE, y=get(BPCOL[[tr]]))]
+  if(!is.null(COVT)) D <- merge(D, COVT, by="IID", all.x=TRUE)
   for(s in allsids){ D <- merge(D, ZL[[paste(coh, s)]], by="IID", all.x=TRUE); setnames(D, "z", paste0("z_", s)) }
   setkey(D, IID)
-  base <- is.finite(D$y) & !is.na(D$AGE)
+  covok <- if(is.null(COVT)) rep(TRUE, nrow(D)) else (!is.na(D$technology) & D$technology != "none" & stats::complete.cases(D[, PCS5, with=FALSE]))
+  base <- is.finite(D$y) & !is.na(D$AGE) & covok
   spec <- sapply(allsids, function(s) base & is.finite(D[[paste0("z_", s)]]))
   common <- base & Reduce(`&`, lapply(sids, function(s) is.finite(D[[paste0("z_", s)]])))
   Dc <- D[common]; n <- nrow(Dc)
@@ -159,24 +184,12 @@ for(ic in seq_along(COH5)) for(it in 1:2){
                                               as.list(setNames(as.integer(colSums(spec)), paste0("n_", allsids)))))
   for(k in seq_along(sids)){
     s <- sids[k]; z <- Dc[[paste0("z_", s)]]
-    est <- transfer(z, Dc$y, Dc$AGE); bt <- boot_inc(Dc$y, z, Dc$AGE, IDX)
+    Cc <- covmat(Dc); est <- transfer(z, Dc$y, Cc); bt <- boot_inc(Dc$y, z, Cc, IDX)
     RES[[length(RES) + 1]] <- data.table(cohort=coh, cohort_group=GROUP[[coh]], trait=tr, family=FAM$family[k], score_id=s,
-      role="Primary portability panel", exposure=BPCOL[[tr]], sample="common (all five primary scores)",
+      role="Primary portability panel", exposure=BPCOL[[tr]], covariates=COVSET, sample=sprintf("common (all %d primary scores)", nrow(FAM)),
       N=n, N_score_specific=sum(spec[, s]), z_mean_in_sample=mean(z), z_sd_in_sample=sd(z), as.data.table(est),
-      as.data.table(summ(bt)), boot_seed=seed, boot_indices="shared by the five primary families")
+      as.data.table(summ(bt)), boot_seed=seed, boot_indices=sprintf("shared by the %d primary families", nrow(FAM)))
     BOOT[[length(BOOT) + 1]] <- data.table(cohort=coh, trait=tr, score_id=s, replicate=seq_len(B), incR2=bt)
-  }
-  if(tr == "SBP"){
-    Ds <- D[spec[, SUPP]]; same <- identical(Ds$IID, Dc$IID)
-    IDXs <- if(same) IDX else make_idx(nrow(Ds), seed + 5L)
-    z <- Ds[[paste0("z_", SUPP)]]; est <- transfer(z, Ds$y, Ds$AGE); bt <- boot_inc(Ds$y, z, Ds$AGE, IDXs)
-    RES[[length(RES) + 1]] <- data.table(cohort=coh, cohort_group=GROUP[[coh]], trait=tr, family="Multi-ancestry", score_id=SUPP,
-      role="Supplementary SBP-only portability analysis", exposure=BPCOL[[tr]],
-      sample=if(same) "own complete cases (identical to the SBP common sample)" else "own complete cases",
-      N=nrow(Ds), N_score_specific=nrow(Ds), z_mean_in_sample=mean(z), z_sd_in_sample=sd(z), as.data.table(est),
-      as.data.table(summ(bt)), boot_seed=if(same) seed else seed + 5L,
-      boot_indices=if(same) "same matrix as the SBP primary families" else "own matrix")
-    BOOT[[length(BOOT) + 1]] <- data.table(cohort=coh, trait=tr, score_id=SUPP, replicate=seq_len(B), incR2=bt)
   }
 }
 RES <- rbindlist(RES); BOOT <- rbindlist(BOOT); SAMP <- rbindlist(SAMP, fill=TRUE)
@@ -194,10 +207,9 @@ W_(if(nrow(neg)) neg else data.table(cohort=character(0), trait=character(0), sc
 
 ## Cross-platform agreement diagnostic.
 
-TRAIT  <- c(setNames(rep("SBP", 5), FAM$SBP), setNames(rep("DBP", 5), FAM$DBP), setNames("SBP", SUPP))
-FAMILY <- c(setNames(FAM$family, FAM$SBP), setNames(FAM$family, FAM$DBP), setNames("Multi-ancestry", SUPP))
-ROLE   <- c(setNames(rep("Primary portability panel", 10), c(FAM$SBP, FAM$DBP)),
-            setNames("Supplementary SBP-only portability analysis", SUPP))
+TRAIT  <- c(setNames(rep("SBP", nrow(FAM)), FAM$SBP), setNames(rep("DBP", nrow(FAM)), FAM$DBP))
+FAMILY <- c(setNames(FAM$family, FAM$SBP), setNames(FAM$family, FAM$DBP))
+ROLE   <- setNames(rep("Primary portability panel", 2L * nrow(FAM)), c(FAM$SBP, FAM$DBP))
 EXPECT_DUAL <- NULL
 AGR <- list()
 for(coh in COH5) for(sid in SCORES){
@@ -214,18 +226,18 @@ for(coh in COH5) for(sid in SCORES){
 }
 AGR <- rbindlist(AGR)
 W_(AGR, "pgs_portability_platform_agreement.tsv")
-VA <- data.table(check=c("agreement rows (5 cohorts x 11 scores)",
-                         "cohorts whose 11 scores all have the same dual-platform N"),
+VA <- data.table(check=c("agreement rows (5 cohorts x retained scores)",
+                         "cohorts whose scores all have the same dual-platform N"),
                  observed=c(nrow(AGR), sum(vapply(COH5, function(coh) uniqueN(AGR[cohort == coh]$n_dual) == 1L, logical(1)))),
-                 expected=c(55L, 5L))
+                 expected=c(5L * length(SCORES), 5L))
 VA[, match := observed == expected]
 W_(VA, "pgs_portability_platform_agreement_checks.tsv")
 
 W_(data.table(
-  item = c("eligible_women","cleaned_women","dropped_genotype_records","bootstrap_replicates",
-           "seed_base","seed_rule","R","data.table","run_seconds"),
-  value = c(ELIG_N, CLEAN_N, nrow(DROP), B, SEED0,
-            "base + 10*cohort_index + trait_index (+5 for a separate supplementary-score matrix)",
+  item = c("eligible_women","cleaned_women","dropped_genotype_records","covariates","families",
+           "bootstrap_replicates","seed_base","seed_rule","R","data.table","run_seconds"),
+  value = c(ELIG_N, CLEAN_N, nrow(DROP), COVSET, paste(FAM$family, collapse = "; "), B, SEED0,
+            "base + 10*cohort_index + trait_index",
             R.version.string, as.character(packageVersion("data.table")),
             sprintf("%.1f", as.numeric(difftime(Sys.time(), t0, units = "secs"))))),
    "pgs_portability_run_info.tsv")

@@ -1,0 +1,2 @@
+cohort_a	cohort_b	site_a	site_b	women	genotypes	fst_hudson	jackknife_se	n_variants	n_blocks_5mb	median_women_a	median_women_b
+AMANHI-Bangladesh	GAPPS-Bangladesh	Sylhet	Matlab	all	hardcall	0.000394457215630063	4.67648294568229e-06	50000	555	2588	3503

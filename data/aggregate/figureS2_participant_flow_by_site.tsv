@@ -1,0 +1,10 @@
+step	kind	label	Sylhet	Karachi	Matlab	Pemba	Lusaka	GARBH-INi	total
+1	retained	Women with a first recorded study pregnancy	2963	2500	3633	4087	2498	6004	21685
+1x	excluded	Known multiple pregnancy	26	22	35	83	43	0	209
+2	retained	Women after excluding known multiples	2937	2478	3598	4004	2455	6004	21476
+2x	excluded	No harmonized PGS data	324	155	61	51	1028	6004	7623
+3	retained	Women with harmonized PGS data	2613	2323	3537	3953	1427	0	13853
+3x	excluded	No valid antenatal blood pressure	11	154	0	145	0	0	310
+4	retained	Women with valid antenatal blood pressure	2602	2169	3537	3808	1427	0	13543
+4x	excluded	Genetic quality control and identity resolution	14	171	34	188	32	0	439
+5	retained	Cleaned genetic-analysis base sample	2588	1998	3503	3620	1395	0	13104

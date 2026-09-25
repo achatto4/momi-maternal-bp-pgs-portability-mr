@@ -2,8 +2,10 @@
 ## config.example.R
 ##
 ## Copy this file to config.R and edit the paths for your installation.  Every path
-## used anywhere in the pipeline comes from here; no script contains a path of its own.
-## config.R is listed in .gitignore, so a local copy is never committed.
+## used anywhere in the R pipeline comes from here; no script contains a path of its own.
+## config.R is listed in .gitignore, so a local copy is never committed.  The
+## principal-component analysis in genetic_pcs/ has its own configuration file,
+## genetic_pcs/config_pcs.example.sh.
 ## -------------------------------------------------------------------------------
 
 config <- list(
@@ -27,9 +29,10 @@ config <- list(
   ##   work/<cohort>/lpqc.smiss, gsaqc.smiss     per-record missingness
   genotype_qc_dir = "/path/to/genotype_qc",
 
-  ## Principal components, one row per participant, columns IID and PC1..PC5 or more.
-  ## Either an .rds holding a data frame or a tab-separated file.
-  pc_file = "/path/to/principal_components.rds",
+  ## Output directory of genetic_pcs/ (its JPCA_OUT), and the principal-component file
+  ## it writes there: one row per participant, columns IID and PC1..PC5 or more.
+  pca_dir = "output/genetic_pcs",
+  pc_file = "output/genetic_pcs/participant_level/joint_pcs.rds",
 
   ## ---- outputs ---------------------------------------------------------------
   ## derived_dir holds participant-level intermediates and never leaves the secure

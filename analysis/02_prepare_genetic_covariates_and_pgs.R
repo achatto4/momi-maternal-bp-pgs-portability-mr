@@ -2,7 +2,8 @@
 ## 02_prepare_genetic_covariates_and_pgs.R
 ##
 ## Attaches the genetic covariates and the polygenic scores to the cleaned sample:
-##   * principal components 1-5, one row per woman, from the projection prepared upstream;
+##   * principal components 1-5, one row per woman, from the within-cohort joint-platform
+##     principal-component analysis in genetic_pcs/;
 ##   * the merged polygenic score for each cohort and trait. The score is standardised
 ##     within cohort and platform, averaged across platforms for a woman scored on both,
 ##     and re-standardised within cohort, with the genotype records excluded by 01 removed

@@ -1,10 +1,11 @@
 # Generated output. Nothing produced by a run belongs in the repository.
-# The example configuration writes everything under output/; figures/ and
+# The example configurations write everything under output/; figures/ and
 # data/aggregate/ hold the published figures and their source tables and are tracked.
 output/
 
 # Local configuration, which holds paths to the controlled data.
 config.R
+genetic_pcs/config_pcs.sh
 
 # R session files
 .Rproj.user/
